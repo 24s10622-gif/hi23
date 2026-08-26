@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 MBTI 스타일 심리테스트</title>
+    <style>
+        /* 기본 스타일 초기화 및 배경 설정 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* 메인 컨테이너 카드 */
+        .container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        /* 화면 전환 처리 (기본 숨김) */
+        .page {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* 시작 화면 */
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .desc {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        /* 버튼 공통 스타일 */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background-color: #667eea;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        /* 진행 바 (Progress Bar) */
+        .progress-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            height: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        /* 질문 화면 */
+        .question-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 30px;
+            word-break: keep-all;
+            line-height: 1.4;
+        }
+
+        .option-btn {
+            background-color: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: left;
+            word-break: keep-all;
+        }
+
+        .option-btn:hover {
+            background-color: #ebf8ff;
+            border-color: #667eea;
+            color: #2b6cb0;
+        }
+
+        /* 결과 화면 */
+        .result-type {
+            font-size: 28px;
+            color: #667eea;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .result-desc {
+            background-color: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 1. 시작 화면 -->
+        <div id="start-page" class="page active">
+            <h1 class="title">나의 주말 성향 테스트</h1>
+            <p class="desc">주말을 보내는 당신의 스타일을 통해<br>나의 성격 유형을 알아보세요!</p>
+            <button class="btn" onclick="startTest()">테스트 시작하기</button>
+        </div>
+
+        <!-- 2. 질문 화면 -->
+        <div id="question-page" class="page">
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <h2 id="question" class="question-text">질문 내용이 들어갑니다.</h2>
+            <div id="options">
+                <!-- 선택지 버튼이 JS로 생성됩니다 -->
+            </div>
+        </div>
+
+        <!-- 3. 결과 화면 -->
+        <div id="result-page" class="page">
+            <h1 class="title">당신의 성향은?</h1>
+            <div id="result-type" class="result-type">유형 결과</div>
+            <p id="result-desc" class="result-desc">결과 설명이 들어갑니다.</p>
+            <button class="btn" onclick="restartTest()">다시 테스트하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 질문 데이터 (E/I, S/N 선호도 측정 예시)
+        const questions = [
+            {
+                q: "주말이 시작되었다! 당신이 먼저 하는 생각은?",
+                a: [
+                    { text: "친구들에게 연락해서 약속을 잡는다.", type: "E" },
+                    { text: "집에서 혼자 무엇을 하며 쉴지 계획한다.", type: "I" }
+                ]
+            },
+            {
+                q: "새로운 카페에 갔을 때 메뉴를 선택하는 방식은?",
+                a: [
+                    { text: "상상력을 발휘해 시그니처 메뉴나 독특한 음료를 도전한다.", type: "N" },
+                    { text: "실패 없는 아메리카노나 눈에 보이는 익숙한 메뉴를 고른다.", type: "S" }
+                ]
+            },
+            {
+                q: "갑자기 약속이 취소되었을 때 당신의 반응은?",
+                a: [
+                    { text: "아쉽다... 다른 사람이라도 만날까 고민한다.", type: "E" },
+                    { text: "속으로 환호하며 완벽한 침대 휴식을 준비한다.", type: "I" }
+                ]
+            },
+            {
+                q: "영화나 드라마를 볼 때 더 몰입되는 순간은?",
+                a: [
+                    { text: "세계관이 독특하고 여러 해석이 가능한 복선이 많은 작품", type: "N" },
+                    { text: "현실적이고 공감 가능한 스토리 라인의 작품", type: "S" }
+                ]
+            }
+        ];
+
+        // 결과 데이터
+        const results = {
+            "EN": {
+                type: "열정 넘치는 아이디어맨 (EN)",
+                desc: "새로운 사람들과 어울리며 다양한 상상을 나누는 것을 즐깁니다. 창의적이고 에너지가 넘치며, 항상 흥미로운 일을 찾아 나섭니다!"
+            },
+            "ES": {
+                type: "사교적인 분위기 메이커 (ES)",
+                desc: "사람들과 현실적인 즐거움을 나누는 것을 선호합니다. 활동적이고 붙임성이 좋아서 어디서나 분위기를 밝게 만듭니다."
+            },
+            "IN": {
+                type: "조용한 사색가 (IN)",
+                desc: "혼자만의 시간을 가지며 깊은 생각과 독창적인 아이디어를 키워갑니다. 풍부한 상상력과 자신만의 확실한 기호가 있습니다."
+            },
+            "IS": {
+                type: "평온한 힐러 (IS)",
+                desc: "조용하고 편안한 공간에서 검증된 소소한 행복을 즐깁니다. 침착하고 현실적이며 자신만의 페이스를 유지하는 능력이 탁월합니다."
+            }
+        };
+
+        let currentIdx = 0;
+        let score = { E: 0, I: 0, S: 0, N: 0 };
+
+        // 테스트 시작
+        function startTest() {
+            showPage('question-page');
+            showQuestion();
+        }
+
+        // 특정 페이지 표시
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // 질문 출력을 위한 함수
+        function showQuestion() {
+            const qData = questions[currentIdx];
+            document.getElementById('question').innerText = qData.q;
+            
+            // 진행 바 업데이트
+            const progressPercent = ((currentIdx) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = progressPercent + '%';
+
+            // 선택지 생성
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+
+            qData.a.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = option.text;
+                btn.onclick = () => selectOption(option.type);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        // 선택지 클릭 처리
+        function selectOption(type) {
+            score[type]++;
+            currentIdx++;
+
+            if (currentIdx < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // 결과 계산 및 화면 출력
+        function showResult() {
+            showPage('result-page');
+
+            // 점수 계산 (E vs I, N vs S)
+            const ei = score.E >= score.I ? 'E' : 'I';
+            const ns = score.N >= score.S ? 'N' : 'S';
+            const finalType = ei + ns;
+
+            const resultData = results[finalType];
+            document.getElementById('result-type').innerText = resultData.type;
+            document.getElementById('result-desc').innerText = resultData.desc;
+        }
+
+        // 재시작
+        function restartTest() {
+            currentIdx = 0;
+            score = { E: 0, I: 0, S: 0, N: 0 };
+            showPage('start-page');
+        }
+    </script>
+</body>
+</html>
